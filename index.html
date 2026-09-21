@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<title>Pipe Levels</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#E9EEF0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Levels">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script>
+  try {
+    var t = localStorage.getItem('pl.theme');
+    if (t === 'dark' || t === 'light') {
+      document.documentElement.setAttribute('data-theme', t);
+      if (t === 'dark') document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0B181D');
+    }
+  } catch (e) {}
+</script>
+<style>
+@font-face{font-family:"Inter";font-weight:500;font-style:normal;font-display:swap;src:url(fonts/inter-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Inter";font-weight:600;font-style:normal;font-display:swap;src:url(fonts/inter-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Inter";font-weight:700;font-style:normal;font-display:swap;src:url(fonts/inter-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"JetBrains Mono";font-weight:500;font-style:normal;font-display:swap;src:url(fonts/jetbrains-mono-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"JetBrains Mono";font-weight:700;font-style:normal;font-display:swap;src:url(fonts/jetbrains-mono-latin-700-normal.woff2) format("woff2")}
+
+:root{
+  --bg:#E9EEF0;
+  --surface:#FFFFFF;
+  --ink:#0E2830;
+  --muted:#4A626C;
+  --line:#C6D3D9;
+  --accent:#FFC627;
+  --on-accent:#0E2830;
+  --focus:#1B6FA8;
+  --bad:#B42318;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --bg:#0B181D;
+  --surface:#12262D;
+  --ink:#EAF2F4;
+  --muted:#9BB2BA;
+  --line:#284852;
+  --focus:#6CB6E8;
+  --bad:#FF8A80;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html{height:100%;-webkit-text-size-adjust:100%}
+body{
+  margin:0;min-height:100%;
+  background:var(--bg);color:var(--ink);
+  font-family:var(--sans);font-size:16px;line-height:1.35;
+  padding:env(safe-area-inset-top,0px) 0 0;
+  -webkit-tap-highlight-color:transparent;
+}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+.wrap{max-width:520px;margin:0 auto;padding:12px 16px calc(112px + env(safe-area-inset-bottom,0px))}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;padding:4px 0 14px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;letter-spacing:-.01em}
+.brand img{width:32px;height:32px;border-radius:9px;display:block}
+.iconbtn{
+  width:44px;height:44px;border-radius:12px;border:1px solid var(--line);
+  background:var(--surface);display:grid;place-items:center;
+}
+.iconbtn svg{width:20px;height:20px;stroke:var(--ink);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.iconbtn .moon{display:none}
+:root[data-theme="dark"] .iconbtn .sun{display:none}
+:root[data-theme="dark"] .iconbtn .moon{display:block}
+
+/* controls */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px;display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+.panel>*,.pair>*{min-width:0}
+.lbl{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px}
+
+.startbox{
+  display:flex;align-items:center;gap:8px;
+  border:2px solid var(--line);border-radius:14px;padding:4px 8px 4px 16px;background:var(--bg);
+}
+.startbox:focus-within{border-color:var(--focus)}
+.startbox[data-invalid="true"]{border-color:var(--bad)}
+#start{
+  flex:1;min-width:0;border:0;background:transparent;outline:0;
+  font-family:var(--mono);font-weight:700;font-size:38px;line-height:1.2;padding:8px 0;
+}
+#start::placeholder{color:var(--muted);opacity:.55}
+.unit{font-family:var(--mono);font-weight:500;font-size:20px;color:var(--muted)}
+.clear{
+  width:40px;height:40px;border-radius:10px;border:0;background:transparent;
+  display:none;place-items:center;
+}
+.clear.show{display:grid}
+.clear svg{width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:2.2;stroke-linecap:round}
+
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.stepper{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;height:52px;border:2px solid var(--line);border-radius:12px;overflow:hidden;background:var(--bg)}
+.stepper:focus-within{border-color:var(--focus)}
+.stepper[data-invalid="true"]{border-color:var(--bad)}
+.stepper button{border:0;background:transparent;font-size:24px;font-weight:600;line-height:1;color:var(--ink)}
+.stepper button:active{background:var(--line)}
+.stepper input{
+  width:100%;min-width:0;border:0;background:transparent;outline:0;text-align:center;
+  font-family:var(--mono);font-weight:700;font-size:20px;
+}
+
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;border:2px solid var(--line);border-radius:16px;background:var(--bg)}
+.seg button{
+  height:50px;border:0;border-radius:11px;background:transparent;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  font-weight:700;font-size:17px;color:var(--muted);
+}
+.seg button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.seg button[aria-checked="true"]{background:var(--ink);color:var(--surface)}
+
+/* results */
+.list{list-style:none;margin:16px 0 0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.lvl{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:6px 8px 6px 14px;min-height:76px;
+  border-left:5px solid transparent;border-top:1px solid var(--line);
+  scroll-margin-bottom:120px;
+}
+.lvl:first-child{border-top:0}
+.lvl.joint{border-left-color:var(--accent)}
+.meta{min-width:0}
+.name{font-weight:600;font-size:16px}
+.sub{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:13px;color:var(--muted);margin-top:3px}
+.sub .dist{font-family:var(--mono);font-weight:500}
+.gap{
+  border:0;border-radius:8px;background:var(--bg);color:var(--ink);
+  font-family:var(--mono);font-weight:500;font-size:13px;line-height:1;
+  padding:8px 10px;
+}
+.gap.over{background:var(--accent);color:var(--on-accent);font-weight:700}
+.gapedit{display:flex;align-items:center;gap:6px}
+.gap-input{
+  width:76px;height:36px;border:2px solid var(--focus);border-radius:8px;background:var(--bg);
+  text-align:center;font-family:var(--mono);font-weight:700;font-size:16px;outline:0;
+}
+.gap-ok{width:36px;height:36px;border:0;border-radius:8px;background:var(--ink);color:var(--surface);display:grid;place-items:center}
+.gap-ok svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.val{
+  border:0;background:transparent;border-radius:12px;padding:8px 10px;text-align:right;
+  display:flex;flex-direction:column;align-items:flex-end;min-width:140px;
+}
+.val:active{background:var(--bg)}
+.num{font-family:var(--mono);font-weight:700;font-size:28px;line-height:1.1;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.num.empty{color:var(--muted);opacity:.5}
+.delta{font-family:var(--mono);font-weight:500;font-size:12.5px;color:var(--muted);margin-top:3px;min-height:16px}
+
+/* bottom bar */
+.bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:5;
+  background:var(--bg);border-top:1px solid var(--line);
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));
+}
+.bar-in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:56px 1fr 1fr 78px;gap:8px}
+.btn{
+  height:58px;border-radius:14px;border:1px solid var(--line);background:var(--surface);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;
+}
+.btn b{font-size:16px;font-weight:700}
+.btn small{font-size:12px;color:var(--muted);font-weight:500}
+.btn:active{transform:translateY(1px);background:var(--bg)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.primary small{color:var(--on-accent);opacity:.75}
+.btn.primary:active{background:var(--accent);filter:brightness(.94)}
+.btn svg{width:22px;height:22px;stroke:var(--ink);fill:none;stroke-width:2.6;stroke-linecap:round}
+.btn:disabled{opacity:.4}
+
+.toast{
+  position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:6;
+  transform:translate(-50%,8px);opacity:0;pointer-events:none;
+  background:var(--ink);color:var(--surface);
+  font-weight:600;font-size:14px;padding:10px 16px;border-radius:12px;
+  transition:opacity .15s ease,transform .15s ease;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+[hidden]{display:none !important}
+
+.tbm-link{
+  display:block;width:100%;margin-top:8px;min-height:52px;border:0;background:transparent;
+  color:var(--muted);font-weight:600;font-size:15px;text-decoration:underline;text-underline-offset:4px;
+}
+
+dialog{
+  border:0;padding:0;background:var(--surface);color:var(--ink);
+  width:100%;max-width:520px;margin:auto auto 0;max-height:calc(100dvh - 24px);overflow:auto;
+  border-radius:22px 22px 0 0;
+}
+dialog::backdrop{background:rgba(6,16,20,.55)}
+.sheet{padding:16px 16px calc(20px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.sheet-head{display:flex;align-items:center;justify-content:space-between}
+.sheet-head h2{margin:0;font-size:18px;font-weight:700;letter-spacing:-.01em}
+.sheet .seg button{font-size:15px}
+.numin{
+  width:100%;height:60px;border:2px solid var(--line);border-radius:12px;background:var(--bg);
+  padding:0 14px;font-family:var(--mono);font-weight:700;font-size:26px;outline:0;
+}
+.numin:focus{border-color:var(--focus)}
+.result{background:var(--bg);border-radius:14px;padding:14px 16px;display:grid;gap:4px}
+.rl{font-size:13px;font-weight:600;color:var(--muted)}
+.rv{font-family:var(--mono);font-weight:700;font-size:44px;line-height:1.1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.rv.empty{color:var(--muted);opacity:.5}
+.rh{font-family:var(--mono);font-weight:500;font-size:13px;color:var(--muted);min-height:18px}
+.warn{font-size:13px;font-weight:600;color:var(--bad);min-height:18px}
+.sheet-actions{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px}
+.sheet-actions .btn{height:54px}
+
+@media (max-width:360px){
+  #start{font-size:32px}
+  .num{font-size:24px}
+  .val{min-width:120px}
+}
+@media (prefers-reduced-motion:reduce){
+  .toast{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><img src="favicon.svg" alt="" width="32" height="32"><span>Pipe Levels</span></div>
+    <button class="iconbtn" id="theme" type="button" aria-label="Switch light or dark theme">
+      <svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></svg>
+      <svg class="moon" viewBox="0 0 24 24"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg>
+    </button>
+  </header>
+
+  <section class="panel" aria-label="Inputs">
+    <div>
+      <label class="lbl" for="start">Start level (Level 1)</label>
+      <div class="startbox" id="startbox">
+        <input id="start" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="0.000" aria-describedby="startunit">
+        <span class="unit" id="startunit">m</span>
+        <button class="clear" id="clear" type="button" aria-label="Clear start level">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="pair">
+      <div>
+        <label class="lbl" for="slope">Slope (‰)</label>
+        <div class="stepper" id="slopebox">
+          <button type="button" data-step="slope" data-d="-0.5" aria-label="Decrease slope">−</button>
+          <input id="slope" type="text" inputmode="decimal" autocomplete="off">
+          <button type="button" data-step="slope" data-d="0.5" aria-label="Increase slope">+</button>
+        </div>
+      </div>
+      <div>
+        <label class="lbl" for="step">Distance (m)</label>
+        <div class="stepper" id="stepbox">
+          <button type="button" data-step="step" data-d="-0.5" aria-label="Decrease distance">−</button>
+          <input id="step" type="text" inputmode="decimal" autocomplete="off">
+          <button type="button" data-step="step" data-d="0.5" aria-label="Increase distance">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="seg" id="dirseg" role="radiogroup" aria-label="Direction">
+      <button type="button" role="radio" data-dir="up" aria-checked="false">
+        <svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg>Up
+      </button>
+      <button type="button" role="radio" data-dir="down" aria-checked="true">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg>Down
+      </button>
+    </div>
+  </section>
+
+  <ol class="list" id="list" aria-live="polite"></ol>
+  <button class="tbm-link" id="openTbm" type="button">TBM converter</button>
+</div>
+
+<dialog id="tbm" aria-labelledby="tbmTitle">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h2 id="tbmTitle">TBM converter</h2>
+      <button class="iconbtn" id="tbmClose" type="button" aria-label="Close">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="seg" role="radiogroup" aria-label="Conversion">
+      <button type="button" role="radio" data-mode="fwd" aria-checked="true">Plan to reading</button>
+      <button type="button" role="radio" data-mode="rev" aria-checked="false">Reading to plan</button>
+    </div>
+    <div>
+      <label class="lbl" for="tbmLevel">TBM level (m)</label>
+      <input class="numin" id="tbmLevel" type="text" inputmode="decimal" autocomplete="off" placeholder="0.000">
+    </div>
+    <div>
+      <label class="lbl" for="tbmRead">Reading on TBM (m)</label>
+      <input class="numin" id="tbmRead" type="text" inputmode="decimal" autocomplete="off" placeholder="0.000">
+    </div>
+    <div>
+      <label class="lbl" for="tbmIn" id="tbmInLbl">Plan level (m)</label>
+      <input class="numin" id="tbmIn" type="text" inputmode="decimal" autocomplete="off" placeholder="0.000">
+    </div>
+    <div class="result" aria-live="polite">
+      <span class="rl" id="tbmResLbl">Reading to set on staff</span>
+      <span class="rv empty" id="tbmVal">—</span>
+      <span class="rh" id="tbmHi"></span>
+      <span class="warn" id="tbmWarn"></span>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn" id="tbmCopy" type="button"><b>Copy</b></button>
+      <button class="btn primary" id="tbmUse" type="button"><b>Use as Start</b></button>
+    </div>
+  </div>
+</dialog>
+
+<nav class="bar" aria-label="Actions">
+  <div class="bar-in">
+    <button class="btn" id="remove" type="button" aria-label="Remove last level">
+      <svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>
+    </button>
+    <button class="btn" id="addOne" type="button"><b>+ Reading</b><small>1 level</small></button>
+    <button class="btn primary" id="addPipe" type="button"><b>+ Pipe</b><small>2 levels</small></button>
+    <button class="btn" id="copy" type="button"><b>Copy</b><small>all</small></button>
+  </div>
+</nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var DEFAULTS = { slope: '6.0', step: '3', dir: 'down' };
+  var MAX_ROWS = 200;
+  // rows: t = start | mid | joint ; g = own distance from previous level (null = use the main Distance)
+  function initRows() { return [{ t: 'start', g: null }, { t: 'mid', g: null }, { t: 'joint', g: null }]; }
+  var state = { start: '', slope: DEFAULTS.slope, step: DEFAULTS.step, dir: DEFAULTS.dir, rows: initRows(), editing: null };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var elStart = $('start'), elSlope = $('slope'), elStep = $('step');
+  var elList = $('list'), elToast = $('toast');
+
+  /* ---------- persistence (settings only, never the start level) ---------- */
+  function load() {
+    try {
+      var s = JSON.parse(localStorage.getItem('pl.settings') || '{}');
+      if (typeof s.slope === 'string' && s.slope) state.slope = s.slope;
+      if (typeof s.step === 'string' && s.step) state.step = s.step;
+      if (s.dir === 'up' || s.dir === 'down') state.dir = s.dir;
+    } catch (e) {}
+  }
+  function save() {
+    try {
+      localStorage.setItem('pl.settings', JSON.stringify({ slope: state.slope, step: state.step, dir: state.dir }));
+    } catch (e) {}
+  }
+
+  /* ---------- number helpers ---------- */
+  function normalize(str) {
+    return String(str)
+      .replace(/[\u0660-\u0669]/g, function (d) { return d.charCodeAt(0) - 0x0660; })
+      .replace(/[\u06F0-\u06F9]/g, function (d) { return d.charCodeAt(0) - 0x06F0; })
+      .replace(/[\u066B\u066C\u060C,]/g, '.')
+      .replace(/\s+/g, '');
+  }
+  function sanitize(str) {
+    var s = normalize(str).replace(/[^0-9.\-]/g, '');
+    s = s.replace(/(?!^)-/g, '');
+    var i = s.indexOf('.');
+    if (i !== -1) s = s.slice(0, i + 1) + s.slice(i + 1).replace(/\./g, '');
+    return s;
+  }
+  function parse(str) {
+    var s = sanitize(str);
+    if (s === '' || s === '-' || s === '.' || s === '-.') return null;
+    var n = Number(s);
+    return isFinite(n) ? n : null;
+  }
+  function trimNum(n, dp) { return String(+n.toFixed(dp)); }
+  function fmtSlope(n) {
+    var s = trimNum(n, 3);
+    return s.indexOf('.') === -1 ? s + '.0' : s;
+  }
+  /* exact formatting of an integer number of millimetres as metres with 3 decimals */
+  function fmtMm(mm) {
+    var neg = mm < 0, a = Math.abs(mm);
+    var whole = Math.floor(a / 1000), frac = String(a % 1000);
+    while (frac.length < 3) frac = '0' + frac;
+    return (neg ? '-' : '') + whole + '.' + frac;
+  }
+
+  /* ---------- calculation ---------- */
+  function compute() {
+    var L0 = parse(state.start), slope = parse(state.slope), step = parse(state.step);
+    var startOk = L0 !== null;
+    var slopeOk = slope !== null && slope >= 0;
+    var stepOk = step !== null && step > 0;
+    var sign = state.dir === 'down' ? 1 : -1;   // staff readings: going down = higher reading
+    var baseMm = startOk ? Math.round(L0 * 1000) : 0;
+    var rows = [], cum = 0, known = true, allOk = startOk && slopeOk;
+
+    for (var i = 0; i < state.rows.length; i++) {
+      var r = state.rows[i], gap = 0, over = false;
+      // a level is only "Mid" when the next level closes the pipe (Joint); otherwise it is a pipe end
+      var next = state.rows[i + 1];
+      var disp = i === 0 ? 'start' : (r.t === 'mid' && next && next.t === 'joint' ? 'mid' : 'joint');
+      if (i > 0) {
+        if (r.g !== null) { gap = r.g; over = !(stepOk && r.g === step); }
+        else if (stepOk) { gap = step; }
+        else { known = false; }
+        if (known) cum = Math.round((cum + gap) * 1000) / 1000;
+      }
+      var ok = startOk && slopeOk && known;
+      if (!ok) allOk = false;
+      rows.push({
+        i: i, t: disp, over: over,
+        gap: known ? gap : null,
+        dist: known ? trimNum(cum, 2) : '?',
+        value: ok ? fmtMm(baseMm + sign * Math.round(cum * slope)) : null,
+        deltaMm: ok && i > 0 ? gap * slope : null
+      });
+    }
+    return { rows: rows, startOk: startOk, slopeOk: slopeOk, stepOk: stepOk, sign: sign, ok: allOk };
+  }
+
+  /* ---------- rendering ---------- */
+    var TAGS = { start: 'Start', mid: 'Mid', joint: 'Joint' };
+  var CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+  function render() {
+    var c = compute();
+
+    $('startbox').dataset.invalid = String(state.start !== '' && !c.startOk);
+    $('slopebox').dataset.invalid = String(!c.slopeOk);
+    $('stepbox').dataset.invalid = String(!c.stepOk);
+    $('clear').classList.toggle('show', state.start !== '');
+
+    var btns = document.querySelectorAll('#dirseg button');
+    for (var b = 0; b < btns.length; b++) {
+      btns[b].setAttribute('aria-checked', String(btns[b].dataset.dir === state.dir));
+    }
+
+    var html = '';
+    for (var r = 0; r < c.rows.length; r++) {
+      var row = c.rows[r];
+      var bar = row.t !== 'mid';
+      var chip = '';
+      if (row.i > 0) {
+        if (state.editing === row.i) {
+          chip = '<span class="gapedit"><input class="gap-input" type="text" inputmode="decimal" autocomplete="off" ' +
+                 'aria-label="Distance from Level ' + row.i + ' in metres" value="' + (row.gap === null ? '' : trimNum(row.gap, 3)) + '">' +
+                 '<button type="button" class="gap-ok" data-ok="1" aria-label="Save distance">' + CHECK + '</button></span>';
+        } else {
+          chip = '<button type="button" class="gap' + (row.over ? ' over' : '') + '" data-gap="' + row.i + '" ' +
+                 'aria-label="Distance from Level ' + row.i + ': ' + (row.gap === null ? 'not set' : trimNum(row.gap, 2) + ' metres') + '. Tap to edit">+' +
+                 (row.gap === null ? '?' : trimNum(row.gap, 2)) + ' m</button>';
+        }
+      }
+      var delta = row.deltaMm === null ? '' : (c.sign > 0 ? '+' : '\u2212') + trimNum(row.deltaMm, 2) + ' mm';
+      html += '<li class="lvl' + (bar ? ' joint' : '') + '">' +
+        '<div class="meta"><div class="name">Level ' + (row.i + 1) + '</div>' +
+        '<div class="sub"><span class="dist">' + row.dist + ' m</span><span>' + TAGS[row.t] + '</span>' + chip + '</div></div>' +
+        '<button type="button" class="val" data-i="' + row.i + '"' + (row.value === null ? ' disabled' : '') +
+        ' aria-label="Level ' + (row.i + 1) + ': ' + (row.value === null ? 'no value' : row.value + ' metres') + '. Tap to copy">' +
+        '<span class="num' + (row.value === null ? ' empty' : '') + '">' + (row.value === null ? '\u2014\u2009.\u2009\u2014\u2014\u2014' : row.value) + '</span>' +
+        '<span class="delta">' + delta + '</span></button></li>';
+    }
+    elList.innerHTML = html;
+    $('remove').disabled = state.rows.length <= 1;
+
+    if (state.editing !== null) {
+      var ei = elList.querySelector('.gap-input');
+      if (ei) { ei.focus(); ei.select(); }
+    }
+    return c;
+  }
+
+  /* ---------- toast + copy ---------- */
+  var toastTimer;
+  function toast(msg) {
+    elToast.textContent = msg;
+    elToast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { elToast.classList.remove('show'); }, 1400);
+  }
+  function copyText(text, msg, cb) {
+    function done(ok) { if (cb) cb(ok); else toast(ok ? msg : 'Copy not available'); }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+      document.body.appendChild(ta); ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      done(ok);
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(function () { done(true); }, fallback);
+    } else { fallback(); }
+  }
+  function summaryText(c) {
+    var lines = [];
+    lines.push('Slope ' + fmtSlope(parse(state.slope)) + '\u2030 ' + (state.dir === 'up' ? 'Up' : 'Down'));
+    c.rows.forEach(function (row) {
+      lines.push('Level ' + (row.i + 1) + ' [' + row.dist + 'm]: ' + row.value);
+    });
+    return lines.join('\n');
+  }
+
+  /* ---------- actions ---------- */
+  function scrollToLast() {
+    var last = elList.lastElementChild;
+    if (!last) return;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    last.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+  }
+  function addRows(types) {
+    if (state.rows.length + types.length > MAX_ROWS) { toast('Maximum reached'); return; }
+    types.forEach(function (t) { state.rows.push({ t: t, g: null }); });
+    render(); scrollToLast();
+  }
+  function commitGap(input) {
+    var idx = state.editing;
+    if (idx === null || !state.rows[idx]) return;
+    state.editing = null;
+    var n = input ? parse(input.value) : null;
+    state.rows[idx].g = (n !== null && n > 0) ? n : null;   // empty or invalid = back to main Distance
+    render();
+  }
+
+  elStart.addEventListener('input', function () {
+    var s = sanitize(elStart.value);
+    if (s !== elStart.value) elStart.value = s;
+    state.start = s; render();
+  });
+  ['slope', 'step'].forEach(function (k) {
+    var el = k === 'slope' ? elSlope : elStep;
+    el.addEventListener('input', function () {
+      var s = sanitize(el.value);
+      if (s !== el.value) el.value = s;
+      state[k] = s; save(); render();
+    });
+    el.addEventListener('blur', function () {
+      // tidy the text; re-render only if the number itself changed (a re-render here would swallow the next tap)
+      var before = parse(state[k]);
+      var n = parse(el.value);
+      if (n === null) { el.value = state[k] = DEFAULTS[k]; }
+      else { el.value = state[k] = (k === 'slope' ? fmtSlope(n) : trimNum(n, 3)); }
+      save();
+      if (before !== parse(state[k])) render();
+    });
+  });
+  elStart.addEventListener('focus', function () { elStart.select(); });
+
+  /* per-level distance editing */
+  elList.addEventListener('input', function (e) {
+    if (!e.target.classList.contains('gap-input')) return;
+    var s = sanitize(e.target.value);
+    if (s !== e.target.value) e.target.value = s;
+  });
+  elList.addEventListener('keydown', function (e) {
+    if (!e.target.classList.contains('gap-input')) return;
+    if (e.key === 'Enter') { e.preventDefault(); commitGap(e.target); }
+    else if (e.key === 'Escape') { state.editing = null; render(); }
+  });
+  elList.addEventListener('focusout', function (e) {
+    if (e.target.classList.contains('gap-input')) commitGap(e.target);
+  });
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('button');
+    if (!t) return;
+
+    if (t.dataset.step) {
+      var k = t.dataset.step, el = k === 'slope' ? elSlope : elStep;
+      var cur = parse(state[k]);
+      if (cur === null) cur = parseFloat(DEFAULTS[k]);
+      var min = k === 'slope' ? 0 : 0.5;
+      var next = Math.max(min, Math.round((cur + parseFloat(t.dataset.d)) * 1000) / 1000);
+      state[k] = k === 'slope' ? fmtSlope(next) : trimNum(next, 3);
+      el.value = state[k]; save(); render();
+    } else if (t.dataset.dir) {
+      state.dir = t.dataset.dir; save(); render();
+    } else if (t.dataset.mode) {
+      tbm.mode = t.dataset.mode; tbmRender();
+    } else if (t.dataset.gap) {
+      state.editing = +t.dataset.gap; render();
+    } else if (t.dataset.ok) {
+      commitGap(elList.querySelector('.gap-input'));
+    } else if (t.classList.contains('val')) {
+      var c1 = compute(); var row = c1.rows[+t.dataset.i];
+      if (row && row.value !== null) copyText(row.value, row.value + ' copied');
+    }
+  });
+
+  $('clear').addEventListener('click', function () {
+    state.start = ''; elStart.value = ''; render(); elStart.focus();
+  });
+  $('addOne').addEventListener('click', function () { addRows(['joint']); });
+  $('addPipe').addEventListener('click', function () { addRows(['mid', 'joint']); });
+  $('remove').addEventListener('click', function () {
+    if (state.rows.length > 1) { state.rows.pop(); state.editing = null; render(); }
+  });
+  $('copy').addEventListener('click', function () {
+    var c = compute();
+    if (!c.ok) { toast('Enter a start level first'); return; }
+    copyText(summaryText(c), 'All levels copied');
+  });
+  $('theme').addEventListener('click', function () {
+    var root = document.documentElement;
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('pl.theme', next); } catch (e) {}
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute('content', next === 'dark' ? '#0B181D' : '#E9EEF0');
+  });
+
+  /* ---------- TBM converter (separate calculator) ---------- */
+  var dlg = $('tbm');
+  var tbm = { mode: 'fwd', level: '', read: '', input: '' };
+  try { tbm.level = localStorage.getItem('pl.tbm') || ''; } catch (e) {}
+
+  // same formula both ways: reading = HI - level, level = HI - reading, where HI = TBM level + reading on TBM
+  function tbmCompute() {
+    var L = parse(tbm.level), R = parse(tbm.read), X = parse(tbm.input);
+    if (L === null || R === null || X === null) return null;
+    var hi = Math.round(L * 1000) + Math.round(R * 1000);
+    var out = hi - Math.round(X * 1000);
+    return { hi: fmtMm(hi), out: fmtMm(out), neg: out < 0 };
+  }
+  function tbmRender() {
+    var fwd = tbm.mode === 'fwd';
+    var btns = document.querySelectorAll('#tbm [data-mode]');
+    for (var i = 0; i < btns.length; i++) btns[i].setAttribute('aria-checked', String(btns[i].dataset.mode === tbm.mode));
+    $('tbmInLbl').textContent = fwd ? 'Plan level (m)' : 'Reading (m)';
+    $('tbmResLbl').textContent = fwd ? 'Reading to set on staff' : 'Plan level';
+    var r = tbmCompute();
+    var val = $('tbmVal');
+    val.textContent = r ? r.out : '\u2014';
+    val.classList.toggle('empty', !r);
+    $('tbmHi').textContent = r ? 'Instrument height (HI)  ' + r.hi + ' m' : '';
+    $('tbmWarn').textContent = r && fwd && r.neg ? 'Level is above the instrument line of sight.' : '';
+    $('tbmCopy').disabled = !r;
+    $('tbmUse').hidden = !fwd;
+    $('tbmUse').disabled = !r || r.neg;
+  }
+  [['tbmLevel', 'level'], ['tbmRead', 'read'], ['tbmIn', 'input']].forEach(function (pair) {
+    var el = $(pair[0]);
+    el.addEventListener('input', function () {
+      var s = sanitize(el.value);
+      if (s !== el.value) el.value = s;
+      tbm[pair[1]] = s;
+      if (pair[1] === 'level') { try { localStorage.setItem('pl.tbm', s); } catch (e) {} }
+      tbmRender();
+    });
+    el.addEventListener('focus', function () { el.select(); });
+  });
+  $('openTbm').addEventListener('click', function () {
+    $('tbmLevel').value = tbm.level; $('tbmRead').value = tbm.read; $('tbmIn').value = tbm.input;
+    tbmRender();
+    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
+  });
+  function closeTbm() { if (dlg.close) dlg.close(); else dlg.removeAttribute('open'); }
+  $('tbmClose').addEventListener('click', closeTbm);
+  dlg.addEventListener('click', function (e) { if (e.target === dlg) closeTbm(); });
+  $('tbmCopy').addEventListener('click', function () {
+    var r = tbmCompute(); if (!r) return;
+    var btn = $('tbmCopy'), label = btn.querySelector('b');
+    copyText(r.out, '', function (ok) {
+      label.textContent = ok ? 'Copied' : 'Copy failed';
+      setTimeout(function () { label.textContent = 'Copy'; }, 1200);
+    });
+  });
+  $('tbmUse').addEventListener('click', function () {
+    var r = tbmCompute(); if (!r || r.neg) return;
+    state.start = r.out; elStart.value = r.out; render();
+    closeTbm(); toast('Start level set');
+  });
+
+  /* ---------- init ---------- */
+  load();
+  elSlope.value = state.slope;
+  elStep.value = state.step;
+  render();
+
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    });
+  }
+})();
+</script>
+</body>
+</html>

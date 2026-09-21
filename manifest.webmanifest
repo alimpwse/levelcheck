@@ -1,0 +1,16 @@
+{
+  "name": "Pipe Levels",
+  "short_name": "Levels",
+  "description": "Quick slope-based level calculator for pipe readings on site.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0F2F3A",
+  "theme_color": "#E9EEF0",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
